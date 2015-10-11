@@ -1,5 +1,6 @@
 package com.duncan.nfctest;
 
+// this code was produced from luxial's code on git hub at https://gist.github.com/luixal/5768921
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Intent;
@@ -8,10 +9,9 @@ import android.nfc.NfcAdapter;
 import android.nfc.tech.MifareClassic;
 import android.os.Bundle;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends Activity {
-
-    // list of NFC technologies detected:
     private final String[][] techList = new String[][] {
             new String[] {
                     MifareClassic.class.getName()
@@ -22,6 +22,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
     }
 
     @Override
@@ -36,7 +37,12 @@ public class MainActivity extends Activity {
         filter.addAction(NfcAdapter.ACTION_TECH_DISCOVERED);
         // enabling foreground dispatch for getting intent from NFC event:
         NfcAdapter nfcAdapter = NfcAdapter.getDefaultAdapter(this);
-        nfcAdapter.enableForegroundDispatch(this, pendingIntent, new IntentFilter[]{filter}, this.techList);
+        if (nfcAdapter != null && nfcAdapter.isEnabled()) {
+            nfcAdapter.enableForegroundDispatch(this, pendingIntent, new IntentFilter[]{filter}, this.techList);
+        }else{
+            Toast.makeText(MainActivity.this, "NFC is not Enabled", Toast.LENGTH_LONG).show();
+        }
+
     }
 
     @Override
@@ -50,19 +56,16 @@ public class MainActivity extends Activity {
     @Override
     protected void onNewIntent(Intent intent) {
         if (intent.getAction().equals(NfcAdapter.ACTION_TAG_DISCOVERED)) {
-            ((TextView)findViewById(R.id.text)).setText(
-                    "NFC Tag\n" +
-                            ByteArrayToHexString(intent.getByteArrayExtra(NfcAdapter.EXTRA_ID)));
+            ((TextView)findViewById(R.id.text)).setText(ByteArrayToHexString(intent.getByteArrayExtra(NfcAdapter.EXTRA_ID)));
         }
     }
 
     private String ByteArrayToHexString(byte [] inarray) {
         int i, j, in;
-        String [] hex = {"0","1","2","3","4","5","6","7","8","9","A","B","C","D","E","F"};
-        String out= "";
+        String[] hex = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"};
+        String out = "";
 
-        for(j = 0 ; j < inarray.length ; ++j)
-        {
+        for (j = 0; j < inarray.length; ++j) {
             in = (int) inarray[j] & 0xff;
             i = (in >> 4) & 0x0f;
             out += hex[i];
@@ -71,5 +74,4 @@ public class MainActivity extends Activity {
         }
         return out;
     }
-
 }
